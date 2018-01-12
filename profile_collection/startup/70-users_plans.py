@@ -20,7 +20,6 @@ shutter_close = _ns['shutter_close']
 smlld = _ns['smlld']
 dssy = _ns['dssy']
 dssx = _ns['dssx']
-elem = _ns['elem']
 plot = _ns['plot']
 fly1d = _ns['fly1d']
 del _ns
