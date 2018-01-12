@@ -66,7 +66,7 @@ del _hxn_register_handlers
 from IPython import get_ipython
 from nslsii import configure_base, configure_olog
 
-configure_base(get_ipython().user_ns, db_new)
+configure_base(get_ipython().user_ns, db_new, bec=False)
 configure_olog(get_ipython().user_ns)
 
 # set some default meta-data
