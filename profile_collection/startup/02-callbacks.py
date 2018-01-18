@@ -44,4 +44,4 @@ for _event in ('start', 'stop'):
     RE.subscribe(_event, uid_broadcaster)
     RE.subscribe(_event, hxn_scan_status)
 
-RE.subscribe('start', logger_callback)
+# RE.subscribe('start', logger_callback)
