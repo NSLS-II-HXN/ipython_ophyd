@@ -4,7 +4,7 @@ import ophyd
 
 # Set up a Broker.
 # TODO clean this up
-from databroker import Broker
+from databroker.v0 import Broker
 from databroker.headersource.mongo import MDS
 from databroker.assets.mongo import Registry
 
@@ -266,12 +266,14 @@ class CompositeRegistry(Registry):
 # Broker 1
 
 mds_db1 = MDS(_mds_config_db1, auth=False)
-db1 = Broker(mds_db1, CompositeRegistry(_fs_config_db1))
+cr1 = CompositeRegistry(_fs_config_db1)
+db1 = Broker(mds_db1, cr1)
 
 # Broker 2
 
 mds_db2 = MDS(_mds_config_db2, auth=False)
-db2 = Broker(mds_db2, CompositeRegistry(_fs_config_db2))
+cr2 = CompositeRegistry(_fs_config_db2)
+db2 = Broker(mds_db2, cr2)
 
 
 # wrapper for two databases
@@ -370,7 +372,12 @@ from IPython import get_ipython
 from nslsii import configure_base, configure_olog
 
 # configure_base(get_ipython().user_ns, db_new, bec=False)
-configure_base(get_ipython().user_ns, db, bec=False)
+# We have an error:
+# UserWarning: Couldn't start log: Log file is already active: 
+# /home/xf03id/logs/ophyd_user_log_xf03id.log
+# Try to disable IPython logging.
+# TODO: fix IPython logging (maybe on the nslsii side).
+configure_base(get_ipython().user_ns, db, bec=False, ipython_logging=False)
 configure_olog(get_ipython().user_ns)
 
 from bluesky.callbacks.best_effort import BestEffortCallback
@@ -550,7 +557,15 @@ def _epicssignal_get(self, *, as_string=None, connection_timeout=1.0, **kwargs):
     if as_string is None:
         as_string = self._string
 
-    with self._lock:
+    ###########################################
+    # Usedf only for old ophyd 1.3.3 and older.
+    from distutils.version import LooseVersion
+    import ophyd
+    if ophyd.__version__ < LooseVersion('1.4'):
+        self._metadata_lock = self._lock
+    ###########################################
+
+    with self._metadata_lock:
         if not self._read_pv.connected:
             if not self._read_pv.wait_for_connection(connection_timeout):
                 raise TimeoutError('Failed to connect to %s' %
@@ -588,6 +603,7 @@ def _epicssignal_get(self, *, as_string=None, connection_timeout=1.0, **kwargs):
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd.areadetector import EpicsSignalWithRBV
+
 
 EpicsSignal.get = _epicssignal_get
 EpicsSignalRO.get = _epicssignal_get
